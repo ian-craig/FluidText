@@ -11,7 +11,7 @@ export class App extends React.Component<AppProps, undefined> {
     render() {
         return (
             <div className="app">
-                <Document />
+                <Document />ss
                 <img src={reactLogo} height="480"/>
             </div>
         );

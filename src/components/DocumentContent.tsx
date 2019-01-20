@@ -3,6 +3,14 @@ import { Paragraph } from "./Paragraph";
 const loremIpsum = require("lorem-ipsum");
 
 /**
+ * The width of the content area.
+ * This should really be calculated from zoom, page size, margins, etc. For now these are all hard-coded anyway.
+ */
+const contentWidth = 690;
+
+const numberOfParagraphs = 1;
+
+/**
  * The area representing the area within the document margins where text may appear.
  */
 export class DocumentContent extends React.Component {
@@ -11,7 +19,7 @@ export class DocumentContent extends React.Component {
     public constructor(props: {}) {
         super(props);
 
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < numberOfParagraphs; i++) {
             this.paragraphStrings.push(
                 loremIpsum({
                     count: 1,                      // Number of words, sentences, or paragraphs to generate.
@@ -27,7 +35,7 @@ export class DocumentContent extends React.Component {
     }
 
     render() {
-        const paragraphs = this.paragraphStrings.map((text, index) => <Paragraph key={index} text={text} />)
+        const paragraphs = this.paragraphStrings.map((text, index) => <Paragraph key={index} text={text} width={contentWidth} />)
 
         return (
             <div className="document-content">

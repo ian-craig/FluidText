@@ -53,6 +53,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
-    "lorem-ipsum": "^1.0.6"
+    "lorem-ipsum": "^1.0.6",
+    "measure-text": "^0.0.4"
   }
 }
