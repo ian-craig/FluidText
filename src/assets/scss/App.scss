@@ -1,12 +1,12 @@
 $bg-color: yellow;
 $border-color: red;
 
+body {
+  margin: 0;
+}
+
 .app {
   font-family: helvetica, arial, sans-serif;
-  padding: 2em;
-  border: 5px solid $border-color;
-
-  p {
-    background-color: $bg-color;
-  }
+  background: lightgray;
+  overflow: auto;
 }
