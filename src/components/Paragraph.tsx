@@ -73,7 +73,9 @@ export class Paragraph extends React.Component<ParagraphProps> {
         const hMasks = [
             ...this.props.masks.map(mask => mask.getHorizontalMaskAt(posYTop + this.props.topY)),
             ...this.props.masks.map(mask => mask.getHorizontalMaskAt(posYBottom + this.props.topY)),
-        ].filter(hm => hm !== undefined).sort((a, b) => a[0] - b[0]);
+        ]
+        .filter(hm => hm !== undefined && hm[0] < this.props.width && hm[1] > 0)
+        .sort((a, b) => a[0] - b[0]);
 
 
         if (hMasks.length === 0) {
@@ -91,6 +93,10 @@ export class Paragraph extends React.Component<ParagraphProps> {
             }
         }
         aggregatedMasks.push(currentMask);
+
+        // Crop masks to content area
+        aggregatedMasks[0][0] = Math.max(0, aggregatedMasks[0][0]);
+        aggregatedMasks[aggregatedMasks.length-1][1] = Math.min(this.props.width, aggregatedMasks[aggregatedMasks.length-1][1]);
         
         return aggregatedMasks;
     }
@@ -114,37 +120,54 @@ export class Paragraph extends React.Component<ParagraphProps> {
             this.cachedText = this.props.text;
         }
 
-        const lines = [];
+        const spans = [];
         let currentSpan = "";
         let currentLineWidth = 0;
         let currentLineTopY = 0;
         let currentLineMasks = this.getMasksAt(currentLineTopY, currentLineTopY + lineHeight);
         let maskIndex = 0;
+
+        const startNewLine = () => {
+            currentSpan = "";
+            currentLineWidth = 0;
+            currentLineTopY += lineHeight;
+            currentLineMasks = this.getMasksAt(currentLineTopY, currentLineTopY + lineHeight);
+            maskIndex = 0;
+        }
+
+        const newLineWidth = (wordWidth: number) => {
+            return currentLineWidth + this.spaceWidth + wordWidth;
+        }
+
         for (const word of words) {
             const wordWidth = this.wordWidths[word];
-            const newLineWidth = currentLineWidth + this.spaceWidth + wordWidth;
 
             // If the next word would overlap a mask, insert necessary space
-            if (currentLineMasks[maskIndex] !== undefined && newLineWidth > currentLineMasks[maskIndex][0]) {
+            while (currentLineMasks[maskIndex] !== undefined && newLineWidth(wordWidth) > currentLineMasks[maskIndex][0]) {
+                // Finish current span
                 let spanWidth = currentLineMasks[maskIndex][0];
                 if (maskIndex > 0) {
                     spanWidth -= currentLineMasks[maskIndex-1][1];
                 } 
-                lines.push(makeSpan(currentSpan, lines.length, spanWidth));
-                lines.push(makeSpan("", lines.length, currentLineMasks[maskIndex][1] - currentLineMasks[maskIndex][0]));
+                spans.push(makeSpan(currentSpan, spans.length, spanWidth));
                 currentSpan = "";
-                currentLineWidth = currentLineMasks[maskIndex][1];
-                maskIndex++;
+
+                // Insert space span
+                spans.push(makeSpan("", spans.length, currentLineMasks[maskIndex][1] - currentLineMasks[maskIndex][0]));
+                if (currentLineMasks[maskIndex][1] >= this.props.width) {
+                    startNewLine();
+                } else {
+                    currentLineWidth = currentLineMasks[maskIndex][1];
+                    maskIndex++;
+                }
             }
 
             // If the next word doesn't fit on the current line, start a new line
-            if (newLineWidth > this.props.width) {
-                lines.push(makeSpan(currentSpan + " ", lines.length));
-                currentSpan = "";
-                currentLineWidth = 0;
-                currentLineTopY += lineHeight;
-                currentLineMasks = this.getMasksAt(currentLineTopY, currentLineTopY + lineHeight);
-                maskIndex = 0;
+            if (newLineWidth(wordWidth) > this.props.width) {
+                if (currentSpan !== "") {
+                    spans.push(makeSpan(currentSpan + " ", spans.length));
+                }
+                startNewLine();
             }
 
             // Add word to the span
@@ -156,12 +179,12 @@ export class Paragraph extends React.Component<ParagraphProps> {
                 currentLineWidth += this.spaceWidth + wordWidth;
             }            
         }
-        lines.push(makeSpan(currentSpan, lines.length));
+        spans.push(makeSpan(currentSpan, spans.length));
 
         this.setHeight(currentLineTopY + lineHeight);
         this.lastUsedMasks = this.props.masks.map(mask => mask.getHashCode());
 
-        return lines;
+        return spans;
     }
 
     public shouldComponentUpdate(nextProps: ParagraphProps): boolean {
