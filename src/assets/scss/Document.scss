@@ -8,4 +8,12 @@
 
 .document-content {
   margin: 80px;
+  position: relative;
+}
+
+.document-para {
+  position: absolute;
+  left: 0;
+  padding: 0;
+  margin: 0;
 }
