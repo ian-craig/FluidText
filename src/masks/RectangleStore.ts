@@ -1,8 +1,4 @@
-
-
-export interface ITextMask {
-    getHorizontalMaskAt(offsetY: number): [number, number] | undefined;
-}
+import { ITextMask } from "./TextMask";
 
 const marginLeftRight = 5;
 
@@ -18,5 +14,9 @@ export class RectangleStore implements ITextMask {
         if (offsetY < this.posY || offsetY > this.posY + this.height)
             return undefined;
         return [this.posX - marginLeftRight, this.posX + this.width + marginLeftRight];
+    }
+
+    public getHashCode(): string {
+        return `Rectangle:${this.width},${this.height},${this.posX},${this.posY}`;
     }
 }

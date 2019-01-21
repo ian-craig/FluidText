@@ -1,5 +1,5 @@
 import * as React from "react";
-import { RectangleStore } from "./RectangleStore";
+import { RectangleStore } from "../masks/RectangleStore";
 
 export interface RectangleProps {
     store: RectangleStore;

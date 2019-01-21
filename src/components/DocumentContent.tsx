@@ -1,8 +1,7 @@
 import * as React from "react";
 import { Paragraph } from "./Paragraph";
 import { Rectangle } from "./Rectangle";
-import { RectangleStore } from "./RectangleStore";
-import { RelativeTextMaskConverter } from "./RelativeTextMaskConverter";
+import { RectangleStore } from "../masks/RectangleStore";
 const loremIpsum = require("lorem-ipsum");
 
 /**
@@ -81,8 +80,7 @@ export class DocumentContent extends React.Component<{}, DocumentContentState> {
             if (topY === undefined) {
                 return null;
             }
-            const masks = this.rectangles.map(mask => new RelativeTextMaskConverter(mask, 0, topY));
-
+            const masks = this.rectangles;
             
             return <Paragraph key={index} text={para.text} width={contentWidth} masks={masks} onHeightChange={para.onHeightChange} topY={topY} />;
         });

@@ -1,6 +1,6 @@
 import * as React from "react";
 import measureText from "measure-text";
-import { ITextMask } from "./RectangleStore";
+import { ITextMask } from "../masks/TextMask";
 
 export interface ParagraphProps {
     /**
@@ -50,10 +50,11 @@ const makeSpan = (text: string, index: number, width?: number) => {
     return <span key={index} style={style}>{text}</span>
 };
 
-export class Paragraph extends React.Component<ParagraphProps, {}> {
+export class Paragraph extends React.Component<ParagraphProps> {
     private cachedText: string | undefined = undefined;
     private wordWidths = {};
     private spaceWidth: number;
+    private lastUsedMasks = [];
     private height = 0;
 
     public constructor(props: ParagraphProps) {
@@ -68,12 +69,12 @@ export class Paragraph extends React.Component<ParagraphProps, {}> {
         }
     }
 
-    private getMasksAt(posXTop: number, posXBottom: number): [number,number][] {
+    private getMasksAt(posYTop: number, posYBottom: number): [number,number][] {
         const hMasks = [
-            ...this.props.masks.map(mask => mask.getHorizontalMaskAt(posXTop)),
-            ...this.props.masks.map(mask => mask.getHorizontalMaskAt(posXBottom)),
+            ...this.props.masks.map(mask => mask.getHorizontalMaskAt(posYTop + this.props.topY)),
+            ...this.props.masks.map(mask => mask.getHorizontalMaskAt(posYBottom + this.props.topY)),
         ].filter(hm => hm !== undefined).sort((a, b) => a[0] - b[0]);
- 
+
 
         if (hMasks.length === 0) {
             return [];
@@ -156,12 +157,30 @@ export class Paragraph extends React.Component<ParagraphProps, {}> {
             }            
         }
         lines.push(makeSpan(currentSpan, lines.length));
+
         this.setHeight(currentLineTopY + lineHeight);
+        this.lastUsedMasks = this.props.masks.map(mask => mask.getHashCode());
+
         return lines;
     }
 
+    public shouldComponentUpdate(nextProps: ParagraphProps): boolean {
+        if (nextProps.masks.length !== this.lastUsedMasks.length) {
+            return true;
+        }
+        for (let i = 0; i < nextProps.masks.length; i++) {
+            if (this.lastUsedMasks[i] !== nextProps.masks[i].getHashCode()) {
+                return true;
+            }
+        }
+        return (
+            this.props.text !== nextProps.text ||
+            this.props.topY !== nextProps.topY ||
+            this.props.width !== nextProps.width
+        );
+    }
+
     public render() {
-        console.log("Rendering paragraph", this.props);
         const paraStyle: React.CSSProperties = {
             ...textStyle,            
             top: `${this.props.topY}px`,
