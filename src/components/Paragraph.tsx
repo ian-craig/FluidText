@@ -122,45 +122,25 @@ export class Paragraph extends React.Component<ParagraphProps> {
 
         const spans = [];
         let currentSpan = "";
-        let currentLineWidth = 0;
-        let currentLineTopY = 0;
-        let currentLineMasks = this.getMasksAt(currentLineTopY, currentLineTopY + lineHeight);
+        let lineWidth = 0;
+        let lineTopY = 0;
+        let lineMasks = this.getMasksAt(lineTopY, lineTopY + lineHeight);
         let maskIndex = 0;
 
         const startNewLine = () => {
             currentSpan = "";
-            currentLineWidth = 0;
-            currentLineTopY += lineHeight;
-            currentLineMasks = this.getMasksAt(currentLineTopY, currentLineTopY + lineHeight);
+            lineWidth = 0;
+            lineTopY += lineHeight;
+            lineMasks = this.getMasksAt(lineTopY, lineTopY + lineHeight);
             maskIndex = 0;
         }
 
         const newLineWidth = (wordWidth: number) => {
-            return currentLineWidth + this.spaceWidth + wordWidth;
+            return lineWidth + this.spaceWidth + wordWidth;
         }
 
         for (const word of words) {
             const wordWidth = this.wordWidths[word];
-
-            // If the next word would overlap a mask, insert necessary space
-            while (currentLineMasks[maskIndex] !== undefined && newLineWidth(wordWidth) > currentLineMasks[maskIndex][0]) {
-                // Finish current span
-                let spanWidth = currentLineMasks[maskIndex][0];
-                if (maskIndex > 0) {
-                    spanWidth -= currentLineMasks[maskIndex-1][1];
-                } 
-                spans.push(makeSpan(currentSpan, spans.length, spanWidth));
-                currentSpan = "";
-
-                // Insert space span
-                spans.push(makeSpan("", spans.length, currentLineMasks[maskIndex][1] - currentLineMasks[maskIndex][0]));
-                if (currentLineMasks[maskIndex][1] >= this.props.width) {
-                    startNewLine();
-                } else {
-                    currentLineWidth = currentLineMasks[maskIndex][1];
-                    maskIndex++;
-                }
-            }
 
             // If the next word doesn't fit on the current line, start a new line
             if (newLineWidth(wordWidth) > this.props.width) {
@@ -170,18 +150,40 @@ export class Paragraph extends React.Component<ParagraphProps> {
                 startNewLine();
             }
 
+            // If the next word would overlap a mask, insert necessary space
+            while (lineMasks[maskIndex] !== undefined && (lineWidth > lineMasks[maskIndex][0] || newLineWidth(wordWidth) > lineMasks[maskIndex][0])) {
+                // Finish current span
+                if (currentSpan !== "") {
+                    let spanWidth = lineMasks[maskIndex][0];
+                    if (maskIndex > 0) {
+                        spanWidth -= lineMasks[maskIndex-1][1];
+                    } 
+                    spans.push(makeSpan(currentSpan, spans.length, spanWidth));
+                    currentSpan = "";
+                }
+
+                // Insert space span
+                spans.push(makeSpan("", spans.length, lineMasks[maskIndex][1] - lineMasks[maskIndex][0]));
+                if (lineMasks[maskIndex][1] >= this.props.width) {
+                    startNewLine();
+                } else {
+                    lineWidth = lineMasks[maskIndex][1];
+                    maskIndex++;
+                }
+            }
+
             // Add word to the span
             if (currentSpan.length === 0) {
                 currentSpan = word;
-                currentLineWidth += wordWidth;
+                lineWidth += wordWidth;
             } else {
                 currentSpan = `${currentSpan} ${word}`;
-                currentLineWidth += this.spaceWidth + wordWidth;
+                lineWidth += this.spaceWidth + wordWidth;
             }            
         }
         spans.push(makeSpan(currentSpan, spans.length));
 
-        this.setHeight(currentLineTopY + lineHeight);
+        this.setHeight(lineTopY + lineHeight);
         this.lastUsedMasks = this.props.masks.map(mask => mask.getHashCode());
 
         return spans;

@@ -2,6 +2,8 @@ import * as React from "react";
 import { Paragraph } from "./Paragraph";
 import { Rectangle } from "./Rectangle";
 import { RectangleStore } from "../masks/RectangleStore";
+import { CircleStore } from "../masks/CircleStore";
+import { Circle } from "./Circle";
 const loremIpsum = require("lorem-ipsum");
 
 /**
@@ -29,9 +31,10 @@ interface DocumentContentState {
  * The area representing the area within the document margins where text may appear.
  */
 export class DocumentContent extends React.Component<{}, DocumentContentState> {
-    private rectangles = [
-        new RectangleStore(250, 250, 100, 33, () => this.setState({ /* Hackily force update. TODO better state management. */ })),
+    private shapes = [
+        new RectangleStore(200, 200, 100, 33, () => this.setState({ /* Hackily force update. TODO better state management. */ })),
         new RectangleStore(50, 150, 450, 60, () => this.setState({ /* Hackily force update. TODO better state management. */ })),
+        new CircleStore(100, 250, 350, () => this.setState({ /* Hackily force update. TODO better state management. */ })),
     ];
 
     public constructor(props: {}) {
@@ -80,17 +83,23 @@ export class DocumentContent extends React.Component<{}, DocumentContentState> {
             if (topY === undefined) {
                 return null;
             }
-            const masks = this.rectangles;
+            const masks = this.shapes;
             
             return <Paragraph key={index} text={para.text} width={contentWidth} masks={masks} onHeightChange={para.onHeightChange} topY={topY} />;
         });
 
-        const rectangles = this.rectangles.map((rectangleStore, i) => <Rectangle store={rectangleStore} key={`rect${i}`} />);
+        const shapes = this.shapes.map((store, i) => {
+            if (store instanceof RectangleStore) {
+                return <Rectangle store={store} key={`rect${i}`} />
+            } else {
+                return <Circle store={store} key={`circle${i}`} />
+            }
+        });
 
         return (
             <div className="document-content">
                 {paragraphs}
-                {rectangles}
+                {shapes}
             </div>
         );
     }

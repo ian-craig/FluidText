@@ -1,12 +1,13 @@
 
 import * as React from "react";
 import { DraggableShape } from "./DraggableShape";
-import { RectangleStore } from "../masks/RectangleStore";
+import { CircleStore } from "../masks/CircleStore";
 
-export const Rectangle = (props: {store: RectangleStore}) => {
+export const Circle = (props: {store: CircleStore}) => {
     const style: React.CSSProperties = {
-        width: `${props.store.width}px`,
-        height: `${props.store.height}px`,
+        width: `${props.store.radius*2}px`,
+        height: `${props.store.radius*2}px`,
+        borderRadius: "50%",
         backgroundColor: "blue",
         position: "absolute",
     };
