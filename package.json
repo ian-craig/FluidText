@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "lorem-ipsum": "^1.0.6",
-    "measure-text": "^0.0.4"
+    "measure-text": "^0.0.4",
+    "react-draggable": "^3.1.1"
   }
 }

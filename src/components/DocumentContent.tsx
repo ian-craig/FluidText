@@ -30,8 +30,8 @@ interface DocumentContentState {
  */
 export class DocumentContent extends React.Component<{}, DocumentContentState> {
     private rectangles = [
-        new RectangleStore(250, 250, 100, 33),
-        new RectangleStore(50, 150, 450, 60),
+        new RectangleStore(250, 250, 100, 33, () => this.setState({ /* Hackily force update. TODO better state management. */ })),
+        new RectangleStore(50, 150, 450, 60, () => this.setState({ /* Hackily force update. TODO better state management. */ })),
     ];
 
     public constructor(props: {}) {
